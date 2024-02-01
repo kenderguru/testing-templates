@@ -28,7 +28,7 @@ public class Testing {
         new InteractionTest(() -> Testing.main(null), IllegalArgumentException.class, new String[]{
             "<3",
             "<0"
-        }).run(1000);
+        }).run(100);
     }
     /**
      * Example code; tested function

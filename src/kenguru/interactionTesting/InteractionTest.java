@@ -66,6 +66,7 @@ public final class InteractionTest {
         if (hasStarted) {
             throw new IllegalStateException("Interactions can only be run once!");
         }
+        hasStarted = true;
         TestRig streams = testSetup();
 
         Thread t = new Thread(runnable);
@@ -81,14 +82,17 @@ public final class InteractionTest {
             if (te.isInput()) {
                 streams.in().println(te.line());
             } else {
-                while (!streams.out().hasNextLine()) {
+                while (!hasLine(streams.out())) {
                     if (System.currentTimeMillis() > endTime) {
+                        if (hasStarted) {
+                            assertEquals(new Throwable("No exception throw"), throwOnThread);
+                        }
                         assertFalse("Program does not terminate!",t.isAlive());
                         assertTrue("Program terminates early!",t.isAlive());
-                        assertEquals("Program threw early!", null, throwOnThread);
                     }
                 }
-                assertEquals(streams.out().nextLine(),te.line());
+                String s = streams.out().nextLine();
+                assertEquals(s,te.line());
             }
         }
 
@@ -122,5 +126,17 @@ public final class InteractionTest {
         System.setIn(progIn);
 
         return new TestRig(testPrint, new Scanner(testIn));
+    }
+    private static boolean hasLine(Scanner scanner) {
+        Thread t = new Thread(() -> scanner.hasNextLine());
+        t.setDaemon(true);
+        t.start();
+        boolean blocked = false;
+        try {
+            t.join(1);
+        } catch (InterruptedException e) {
+            blocked = false;
+        }
+        return blocked && scanner.hasNextLine();
     }
 }
