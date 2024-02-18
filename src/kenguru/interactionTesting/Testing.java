@@ -16,9 +16,23 @@ public class Testing {
     public void interaction() {
         new InteractionTest(() -> Testing.main(null), new String[]{
             "<3",
-            "<0",
+            "<10",
             ">0,30"
-        }).run(100);
+        }).run(10000);
+    }
+    /**
+     * Example code; tests a simple interaction.
+     */
+    @Test
+    public void testingTestClass() {
+        new InteractionTest(() -> {
+            Scanner s = new Scanner(System.in);
+            System.out.println(s.nextLine());
+            s.close();
+        }, new String[]{
+            "<3",
+            ">3"
+        }).run(1000);
     }
     /**
      * Example code; tests a function for an exception throw.

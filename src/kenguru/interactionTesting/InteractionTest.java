@@ -58,7 +58,7 @@ public final class InteractionTest {
     }
     /**
      * Runs the interaction. Each interaction can only be run once.
-     * @param millis The maximum time the program may run
+     * @param millis The maximum time the program may run in milliseconds
      * @throws IllegalStateException when {@code run()} was already called on this object
      */
     public void run(long millis) {
@@ -82,14 +82,10 @@ public final class InteractionTest {
             if (te.isInput()) {
                 streams.in().println(te.line());
             } else {
-                while (!hasLine(streams.out())) {
-                    if (System.currentTimeMillis() > endTime) {
-                        if (hasStarted) {
-                            assertEquals(new Throwable("No exception throw"), throwOnThread);
-                        }
-                        assertFalse("Program does not terminate!",t.isAlive());
-                        assertTrue("Program terminates early!",t.isAlive());
-                    }
+                if (!checkLine(streams.out(), endTime - System.currentTimeMillis())) {
+                    assertEquals(null, throwOnThread);
+                    assertFalse("Program does not terminate!",t.isAlive());
+                    assertTrue("Program terminates early!",t.isAlive());
                 }
                 String s = streams.out().nextLine();
                 assertEquals(s,te.line());
@@ -127,16 +123,16 @@ public final class InteractionTest {
 
         return new TestRig(testPrint, new Scanner(testIn));
     }
-    private static boolean hasLine(Scanner scanner) {
+    private static boolean checkLine(Scanner scanner, long millis) {
         Thread t = new Thread(() -> scanner.hasNextLine());
         t.setDaemon(true);
         t.start();
         boolean blocked = false;
         try {
-            t.join(1);
+            t.join(millis);
         } catch (InterruptedException e) {
-            blocked = false;
+            blocked = true;
         }
-        return blocked && scanner.hasNextLine();
+        return !blocked && scanner.hasNextLine();
     }
 }
